@@ -1,5 +1,6 @@
 package com.wallet.controller;
 
+import com.wallet.dto.UserDTO;
 import com.wallet.entity.User;
 import com.wallet.response.Response;
 import com.wallet.service.UserService;
@@ -23,16 +24,16 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Response<UserDTO>> create(@Valid @RequestBody UserDTO dto, BindingResult result){//BindingResult vai restornar as validações
-        Response<UserDTO> response = new Response<UserDTO>(): //resposta
+        Response<UserDTO> response = new Response<UserDTO>(); //resposta
 
-        User user = service.save(UserDTO);
+        User user = service.save(this.convertDtoToEntity(dto));
 
-        response.setData(this.convertDTOToEntity(user));
+        response.setData(this.convertEntityToDto(user));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    private User convertDTOToEntity(UserDTO dto){
+    private User convertDtoToEntity(UserDTO dto){
         User u = new User();
         u.setEmail(dto.getEmail());
         u.setName(dto.getName());
@@ -42,7 +43,7 @@ public class UserController {
     }
 
     private UserDTO convertEntityToDto(User u){
-        UserDTO dto = new UserDTO():
+        UserDTO dto = new UserDTO();
         dto.setEmail(u.getEmail());
         dto.setName(u.getName());
         dto.setPassword(u.getPassword());
