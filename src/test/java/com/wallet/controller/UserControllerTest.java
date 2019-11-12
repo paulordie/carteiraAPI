@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import static org.hibernate.cfg.AvailableSettings.URL;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,6 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class UserControllerTest {
 
+    //set as informações para validar o test
+    private static final Long ID = 1L;
     private static final String EMAIL = "email@test.com";
     private static final String NAME = "name test";
     private static final String PASSWORD = "123456";
@@ -45,11 +48,23 @@ public class UserControllerTest {
 
         BDDMockito.given(service.save(Mockito.any(User.class))).willReturn(getMockUser());
 
-        mvc.perform(MockMvcRequestBuilders.post(URL).content(getJsonPayload())
+        mvc.perform(MockMvcRequestBuilders.post(URL).content(getJsonPayload(ID, EMAIL, NAME, PASSWORD))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").value(ID))
+                .andExpect(jsonPath("$.data.email").value(EMAIL))
+                .andExpect(jsonPath("$.data.name").value(NAME))
+                .andExpect(jsonPath("$.data.password").value(PASSWORD));
+    }
 
+    @Test
+    public void testSabeInvalidUser() throws  Exception{
+        mvc.perform(MockMvcRequestBuilders.post(URL).content(getJsonPayload(ID,"email", NAME, PASSWORD))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros[0]").value("Email invalido"));
     }
 
     public User getMockUser(){
@@ -61,11 +76,12 @@ public class UserControllerTest {
         return u;
     }
 
-    public String getJsonPayload() throws JsonProcessingException {
+    public String getJsonPayload(Long id, String email, String name, String password) throws JsonProcessingException {
         UserDTO dto = new UserDTO();
-        dto.setEmail(EMAIL);
-        dto.setName(NAME);
-        dto.setPassword(PASSWORD);
+        dto.setId(id);
+        dto.setEmail(email);
+        dto.setName(name);
+        dto.setPassword(password);
 
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(dto);
