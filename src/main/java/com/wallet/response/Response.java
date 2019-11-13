@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -13,5 +14,12 @@ import java.util.List;
 public class Response<T> { //<T> tipo não definido da classe
 
     private T data; // sucesso na api
-    private List<String> erros; // erros na api
+    private List<String> errors; // erros na api
+
+    public List<String> getErros() {
+        if (this.errors == null){
+            this.errors = new ArrayList<>();
+        }
+        return errors;
+    }
 }
